@@ -5,7 +5,6 @@ import '../core/utils/date_formatter.dart';
 import '../models/sensor_model.dart';
 import '../models/sensor_reading_model.dart';
 import '../providers/sensor_simulation_provider.dart';
-import 'sensor_check_bottom_sheet.dart';
 import 'sensor_gauge.dart';
 import 'sensor_mini_chart.dart';
 import 'sensor_status_badge.dart';
@@ -245,13 +244,6 @@ class SensorDetailBottomSheet extends StatelessWidget {
                         _buildRow('Rentang Normal', '${sensor.minThreshold} – ${sensor.maxThreshold} ${sensor.unit}'),
                         const SizedBox(height: 6),
                         _buildRow('Status Kesehatan', sensor.healthStatus),
-                        const SizedBox(height: 6),
-                        _buildRow(
-                          'Pengujian Terakhir',
-                          sensor.lastTested != null
-                              ? '${sensor.lastTestResult} (${DateFormatter.timeAgo(sensor.lastTested!)})'
-                              : 'Belum diuji',
-                        ),
                       ],
                     ),
                   ),
@@ -262,16 +254,16 @@ class SensorDetailBottomSheet extends StatelessWidget {
             ),
           ),
 
-          // Action Button: Periksa Sensor
+          // Action Button: Tutup
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                SensorCheckBottomSheet.show(context, sensor);
-              },
-              icon: const Icon(Icons.radar_rounded, size: 18),
-              label: const Text('Periksa Sensor (Diagnostik Sinyal)'),
+            child: OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Tutup Detail Sensor'),
             ),
           ),
         ],

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
@@ -6,52 +5,14 @@ import '../core/utils/date_formatter.dart';
 import '../models/sensor_model.dart';
 import '../providers/sensor_simulation_provider.dart';
 import '../widgets/app_bar_header.dart';
-import '../widgets/control_panel_card.dart';
 import '../widgets/device_status_card.dart';
 import '../widgets/monitoring_chart_card.dart';
-import '../widgets/recent_activity_card.dart';
 import '../widgets/sensor_monitoring_card.dart';
 import '../widgets/statistics_card.dart';
 import '../widgets/water_quality_comparison_card.dart';
-import '../widgets/water_treatment_diagram.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
-
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  StreamSubscription<String>? _notificationSub;
-
-  @override
-  void initState() {
-    super.initState();
-    // Listen for notification events to show user-friendly SnackBars for important events
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<SensorSimulationProvider>();
-      _notificationSub = provider.notificationEvents.listen((message) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-          );
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _notificationSub?.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,17 +62,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 16),
 
-              // 4. Water Treatment Overview (Visual Alur Penjernihan Multimedia Filter)
-              WaterTreatmentDiagram(sensors: provider.sensors),
-
-              const SizedBox(height: 16),
-
-              // 5. Water Quality Comparison Card (Inlet vs Outlet)
+              // 4. Water Quality Comparison Card (Inlet vs Outlet)
               WaterQualityComparisonCard(comparison: provider.waterQualityComparison),
 
               const SizedBox(height: 18),
 
-              // 6. INLET MONITORING SECTION (4 Sensors)
+              // 5. INLET MONITORING SECTION (4 Sensors)
               _buildSectionHeader(
                 title: 'Inlet Monitoring',
                 subtitle: 'Pemantauan kualitas & debit air baku sebelum filtrasi multimedia',
@@ -129,7 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 10),
 
-              // 7. OUTLET MONITORING SECTION (3 Sensors)
+              // 6. OUTLET MONITORING SECTION (3 Sensors)
               _buildSectionHeader(
                 title: 'Outlet Monitoring',
                 subtitle: 'Evaluasi hasil filtrasi bertingkat & sterilisasi sinar UV',
@@ -159,18 +115,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const SizedBox(height: 10),
 
-              // 8. Monitoring Chart Card (fl_chart)
+              // 7. Monitoring Chart Card (fl_chart)
               const MonitoringChartCard(),
-
-              const SizedBox(height: 16),
-
-              // 9. Control Panel (Pusat Pengecekan Sensor)
-              const ControlPanelCard(),
-
-              const SizedBox(height: 16),
-
-              // 10. Recent Activity Section
-              const RecentActivityCard(),
 
               const SizedBox(height: 24),
               // Footer
