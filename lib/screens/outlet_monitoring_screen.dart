@@ -13,16 +13,21 @@ class OutletMonitoringScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<SensorSimulationProvider>();
     final outletSensors = provider.outletSensors;
+    final quality = provider.waterQualityComparison;
 
     final turbInletVal = provider.getSensorById('SEN-IN-TURB')?.currentValue ?? 85.0;
     final phInletVal = provider.getSensorById('SEN-IN-PH')?.currentValue ?? 6.3;
     final tempInletVal = provider.getSensorById('SEN-IN-TEMP')?.currentValue ?? 27.0;
 
+    final turbOutVal = provider.getSensorById('SEN-IN-OUT-TURB')?.currentValue ?? 3.0;
+    final phOutVal = provider.getSensorById('SEN-IN-OUT-PH')?.currentValue ?? 7.0;
+    final tempOutVal = provider.getSensorById('SEN-IN-OUT-TEMP')?.currentValue ?? 28.0;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: const AppBarHeader(
         title: 'Outlet Monitoring',
-        subtitle: 'Sensor Kualitas Air Hasil',
+        subtitle: 'Kualitas Air Hasil Filtrasi',
       ),
       body: RefreshIndicator(
         color: AppColors.techBlue,
@@ -37,55 +42,96 @@ class OutletMonitoringScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Summary Header Card
+              // Summary Header Overview Card
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.borderLight),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.borderLight),
-                      ),
-                      child: const Icon(
-                        Icons.output_rounded,
-                        color: AppColors.techBlue,
-                        size: 20,
-                      ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Jalur Outlet (Air Hasil Filtrasi)',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.navyBlue,
-                            ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.techBlue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          const SizedBox(height: 1),
-                          Text(
-                            '${provider.waterQualityComparison.turbidityReductionPercent.toStringAsFixed(1)}% Kekeruhan Terjernihkan',
+                          child: const Icon(
+                            Icons.output_rounded,
+                            color: AppColors.techBlue,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Jalur Outlet (Air Hasil Filtrasi)',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.navyBlue,
+                                ),
+                              ),
+                              SizedBox(height: 1),
+                              Text(
+                                'Hasil penyaringan multimedia & disinfeksi UV',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.statusNormalBg,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: AppColors.statusNormalBorder),
+                          ),
+                          child: Text(
+                            '${quality.turbidityReductionPercent.toStringAsFixed(1)}% Reduksi',
                             style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
                               color: AppColors.statusNormal,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+
+                    // Quick Glance 3-Metric Grid
+                    Row(
+                      children: [
+                        _buildQuickMetric('Kekeruhan Outlet', '${turbOutVal.toStringAsFixed(1)} NTU', AppColors.techBlue),
+                        _buildDivider(),
+                        _buildQuickMetric('pH Air Olahan', '${phOutVal.toStringAsFixed(2)} pH', AppColors.statusNormal),
+                        _buildDivider(),
+                        _buildQuickMetric('Suhu Air Olahan', '${tempOutVal.toStringAsFixed(1)}°C', const Color(0xFFF97316)),
+                      ],
                     ),
                   ],
                 ),
@@ -93,7 +139,7 @@ class OutletMonitoringScreen extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // 3 Outlet Sensor Cards
+              // 3 Detailed Outlet Sensor Cards
               ...outletSensors.map((sensor) {
                 double? compVal;
                 if (sensor.type == SensorType.turbidityOutlet) {
@@ -105,7 +151,7 @@ class OutletMonitoringScreen extends StatelessWidget {
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 10.0),
+                  padding: const EdgeInsets.only(bottom: 12.0),
                   child: SensorMonitoringCard(
                     sensor: sensor,
                     inletComparisonValue: compVal,
@@ -118,6 +164,42 @@ class OutletMonitoringScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1,
+      height: 24,
+      color: AppColors.borderLight,
+    );
+  }
+
+  Widget _buildQuickMetric(String label, String value, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 9,
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
