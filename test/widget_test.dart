@@ -8,9 +8,13 @@ import 'package:monitoring_air_mobile/models/device_model.dart';
 import 'package:monitoring_air_mobile/services/simulation_service.dart';
 import 'package:monitoring_air_mobile/providers/sensor_simulation_provider.dart';
 import 'package:monitoring_air_mobile/screens/dashboard_screen.dart';
+import 'package:monitoring_air_mobile/screens/inlet_monitoring_screen.dart';
+import 'package:monitoring_air_mobile/screens/outlet_monitoring_screen.dart';
+import 'package:monitoring_air_mobile/screens/main_navigation_shell.dart';
+import 'package:monitoring_air_mobile/widgets/floating_pill_nav_bar.dart';
 
 void main() {
-  testWidgets('AquaMonitorApp single page dashboard smoke test', (WidgetTester tester) async {
+  testWidgets('AquaMonitorApp navigation shell and floating pill smoke test', (WidgetTester tester) async {
     final provider = SensorSimulationProvider();
 
     await tester.pumpWidget(
@@ -23,13 +27,27 @@ void main() {
     // Initial frame
     await tester.pump(const Duration(milliseconds: 100));
 
-    // Verify Single Page Dashboard is rendered with its primary sections
+    // Verify Main Shell & Floating Pill Nav is rendered
+    expect(find.byType(MainNavigationShell), findsOneWidget);
+    expect(find.byType(FloatingPillNavBar), findsOneWidget);
     expect(find.byType(DashboardScreen), findsOneWidget);
     expect(find.text('AquaMonitor'), findsOneWidget);
     expect(find.text('Dashboard Monitoring'), findsOneWidget);
     expect(find.text('Total Sensor'), findsOneWidget);
-    expect(find.text('Sensor Inlet (Air Baku)'), findsOneWidget);
-    expect(find.text('Sensor Outlet (Air Hasil)'), findsOneWidget);
+
+    // Tap 'Inlet' tab on floating pill
+    await tester.tap(find.text('Inlet'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(InletMonitoringScreen), findsOneWidget);
+    expect(find.text('Jalur Inlet (Air Sungai Masuk)'), findsOneWidget);
+
+    // Tap 'Outlet' tab on floating pill
+    await tester.tap(find.text('Outlet'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(OutletMonitoringScreen), findsOneWidget);
+    expect(find.text('Jalur Outlet (Air Hasil Filtrasi)'), findsOneWidget);
 
     provider.dispose();
   });

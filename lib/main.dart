@@ -4,7 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_theme.dart';
 import 'providers/sensor_simulation_provider.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/main_navigation_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +39,7 @@ class AquaMonitorApp extends StatelessWidget {
       title: 'AquaMonitor – IoT Water Treatment',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const DashboardScreen(),
+      home: const MainNavigationShell(),
     );
   }
 }

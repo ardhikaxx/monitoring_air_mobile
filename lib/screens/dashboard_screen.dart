@@ -2,28 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/utils/date_formatter.dart';
-import '../models/sensor_model.dart';
 import '../providers/sensor_simulation_provider.dart';
 import '../widgets/app_bar_header.dart';
 import '../widgets/device_status_card.dart';
 import '../widgets/monitoring_chart_card.dart';
-import '../widgets/sensor_monitoring_card.dart';
 import '../widgets/statistics_card.dart';
 import '../widgets/water_quality_comparison_card.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  final ValueChanged<int>? onNavigateToTab;
+
+  const DashboardScreen({
+    super.key,
+    this.onNavigateToTab,
+  });
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SensorSimulationProvider>();
-    final inletSensors = provider.inletSensors;
-    final outletSensors = provider.outletSensors;
 
-    // Turbidity, pH, and temp inlet values for comparison tags in outlet cards
-    final turbInletVal = provider.getSensorById('SEN-IN-TURB')?.currentValue ?? 85.0;
-    final phInletVal = provider.getSensorById('SEN-IN-PH')?.currentValue ?? 6.3;
-    final tempInletVal = provider.getSensorById('SEN-IN-TEMP')?.currentValue ?? 27.0;
+    final turbInlet = provider.getSensorById('SEN-IN-TURB')?.currentValue ?? 85.0;
+    final turbOutlet = provider.getSensorById('SEN-IN-OUT-TURB')?.currentValue ?? 3.0;
+    final phInlet = provider.getSensorById('SEN-IN-PH')?.currentValue ?? 6.3;
+    final phOutlet = provider.getSensorById('SEN-IN-OUT-PH')?.currentValue ?? 7.0;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -41,7 +42,7 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Sleek Header Title & Timestamp
+              // 1. Sleek Header Title & Auto-Sync Status
               _buildHeaderTitle(provider),
 
               const SizedBox(height: 12),
@@ -51,7 +52,7 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // 3. Statistical Summary (5 key metrics in one sleek bar)
+              // 3. Statistical Summary Bar
               StatisticsCard(
                 totalSensors: provider.totalSensorsCount,
                 normalCount: provider.normalSensorsCount,
@@ -65,56 +66,43 @@ class DashboardScreen extends StatelessWidget {
               // 4. Water Quality Comparison Card (Inlet vs Outlet)
               WaterQualityComparisonCard(comparison: provider.waterQualityComparison),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // 5. INLET SENSORS (4 Sensors)
-              _buildSectionHeader(
-                title: 'Sensor Inlet (Air Baku)',
-                countLabel: '4 Sensor',
-                icon: Icons.input_rounded,
-              ),
-              const SizedBox(height: 8),
-              ...inletSensors.map(
-                (sensor) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10.0),
-                  child: SensorMonitoringCard(sensor: sensor),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // 6. OUTLET SENSORS (3 Sensors)
-              _buildSectionHeader(
-                title: 'Sensor Outlet (Air Hasil)',
-                countLabel: '3 Sensor',
-                icon: Icons.output_rounded,
-              ),
-              const SizedBox(height: 8),
-              ...outletSensors.map((sensor) {
-                double? compVal;
-                if (sensor.type == SensorType.turbidityOutlet) {
-                  compVal = turbInletVal;
-                } else if (sensor.type == SensorType.phOutlet) {
-                  compVal = phInletVal;
-                } else if (sensor.type == SensorType.temperatureOutlet) {
-                  compVal = tempInletVal;
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10.0),
-                  child: SensorMonitoringCard(
-                    sensor: sensor,
-                    inletComparisonValue: compVal,
+              // 5. Quick Navigation to Dedicated Inlet & Outlet Screens
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickNavCard(
+                      context,
+                      title: 'Sensor Inlet',
+                      subtitle: '4 Sensor Air Baku',
+                      metric: '$turbInlet NTU • $phInlet pH',
+                      icon: Icons.input_rounded,
+                      accentColor: AppColors.rawWater,
+                      onTap: () => onNavigateToTab?.call(1),
+                    ),
                   ),
-                );
-              }),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildQuickNavCard(
+                      context,
+                      title: 'Sensor Outlet',
+                      subtitle: '3 Sensor Air Hasil',
+                      metric: '$turbOutlet NTU • $phOutlet pH',
+                      icon: Icons.output_rounded,
+                      accentColor: AppColors.techBlue,
+                      onTap: () => onNavigateToTab?.call(2),
+                    ),
+                  ),
+                ],
+              ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
 
-              // 7. Monitoring Chart Card (fl_chart)
+              // 6. Parameter Trend Chart (fl_chart)
               const MonitoringChartCard(),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               // Footer
               const Center(
                 child: Text(
@@ -126,7 +114,9 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+
+              // Bottom padding for Floating Pill Bottom Nav
+              const SizedBox(height: 85),
             ],
           ),
         ),
@@ -197,18 +187,45 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader({
+  Widget _buildQuickNavCard(
+    BuildContext context, {
     required String title,
-    required String countLabel,
+    required String subtitle,
+    required String metric,
     required IconData icon,
+    required Color accentColor,
+    required VoidCallback onTap,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppColors.navyBlue, size: 16),
-            const SizedBox(width: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: Icon(icon, color: accentColor, size: 16),
+                ),
+                const Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.textMuted),
+              ],
+            ),
+            const SizedBox(height: 8),
             Text(
               title,
               style: const TextStyle(
@@ -217,25 +234,28 @@ class DashboardScreen extends StatelessWidget {
                 color: AppColors.navyBlue,
               ),
             ),
+            const SizedBox(height: 1),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textMuted,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              metric,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navyBlue,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: AppColors.borderLight),
-          ),
-          child: Text(
-            countLabel,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

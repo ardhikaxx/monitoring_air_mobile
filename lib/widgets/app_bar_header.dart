@@ -6,7 +6,14 @@ import '../providers/sensor_simulation_provider.dart';
 import 'settings_bottom_sheet.dart';
 
 class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
-  const AppBarHeader({super.key});
+  final String title;
+  final String subtitle;
+
+  const AppBarHeader({
+    super.key,
+    this.title = 'AquaMonitor',
+    this.subtitle = 'Water Treatment System',
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(60.0);
@@ -60,9 +67,9 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'AquaMonitor',
-                style: TextStyle(
+              Text(
+                title,
+                style: const TextStyle(
                   color: AppColors.navyBlue,
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -105,9 +112,9 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
             ],
           ),
           const SizedBox(height: 1),
-          const Text(
-            'Water Treatment System',
-            style: TextStyle(
+          Text(
+            subtitle,
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 10,
               fontWeight: FontWeight.w500,
