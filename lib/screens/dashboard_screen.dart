@@ -1,30 +1,76 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/utils/date_formatter.dart';
-import '../models/notification_model.dart';
-import '../providers/sensor_provider.dart';
-import '../widgets/custom_app_bar.dart';
-import '../widgets/device_connection_card.dart';
+import '../models/sensor_model.dart';
+import '../providers/sensor_simulation_provider.dart';
+import '../widgets/app_bar_header.dart';
+import '../widgets/control_panel_card.dart';
+import '../widgets/device_status_card.dart';
+import '../widgets/monitoring_chart_card.dart';
+import '../widgets/recent_activity_card.dart';
+import '../widgets/sensor_monitoring_card.dart';
 import '../widgets/statistics_card.dart';
 import '../widgets/water_quality_comparison_card.dart';
 import '../widgets/water_treatment_diagram.dart';
-import 'inlet_monitoring_screen.dart';
-import 'outlet_monitoring_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  StreamSubscription<String>? _notificationSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for notification events to show user-friendly SnackBars for important events
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<SensorSimulationProvider>();
+      _notificationSub = provider.notificationEvents.listen((message) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationSub?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final provider = context.watch<SensorProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final provider = context.watch<SensorSimulationProvider>();
+    final inletSensors = provider.inletSensors;
+    final outletSensors = provider.outletSensors;
+
+    // Turbidity, pH, and temp inlet values for comparison tags in outlet cards
+    final turbInletVal = provider.getSensorById('SEN-IN-TURB')?.currentValue ?? 85.0;
+    final phInletVal = provider.getSensorById('SEN-IN-PH')?.currentValue ?? 6.3;
+    final tempInletVal = provider.getSensorById('SEN-IN-TEMP')?.currentValue ?? 27.0;
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'Dashboard'),
+      backgroundColor: AppColors.background,
+      appBar: const AppBarHeader(),
       body: RefreshIndicator(
+        color: AppColors.techBlue,
         onRefresh: () async {
-          await provider.refreshAllSensors();
+          await provider.refreshAllData();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(
@@ -34,29 +80,17 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome Banner & Last Update
-              _buildGreetingHeader(context, provider, isDark),
+              // 1. Hero / Header Greeting & Dynamic Date/Time
+              _buildHeaderGreeting(context, provider),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // 1. Device Connection Status Card (ESP32)
-              DeviceConnectionCard(
-                device: provider.device,
-                onStatusTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Status ESP32: ${provider.device.status.label}. Kontrol koneksi dapat diubah melalui Control Panel.',
-                      ),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-              ),
+              // 2. Device Connection Status Card (ESP32)
+              DeviceStatusCard(device: provider.device),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // 2. Summary Statistics Card (Total 7, Normal, Warning, Error/Offline, Flow Rate)
+              // 3. Statistical Summary Cards (7 Sensors Total, Normal, Warning, Error/Offline, Flow Rate)
               StatisticsCard(
                 totalSensors: provider.totalSensorsCount,
                 normalCount: provider.normalSensorsCount,
@@ -67,27 +101,91 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Quick Shortcuts to Pipe Monitoring Pages
-              _buildPipeQuickShortcuts(context, isDark),
-
-              const SizedBox(height: 16),
-
-              // 3. Water Treatment Overview Diagram
+              // 4. Water Treatment Overview (Visual Alur Penjernihan Multimedia Filter)
               WaterTreatmentDiagram(sensors: provider.sensors),
 
               const SizedBox(height: 16),
 
-              // 4. Water Quality Summary Comparison Card (Inlet vs Outlet)
-              WaterQualityComparisonCard(
-                comparison: provider.waterQualityComparison,
+              // 5. Water Quality Comparison Card (Inlet vs Outlet)
+              WaterQualityComparisonCard(comparison: provider.waterQualityComparison),
+
+              const SizedBox(height: 18),
+
+              // 6. INLET MONITORING SECTION (4 Sensors)
+              _buildSectionHeader(
+                title: 'Inlet Monitoring',
+                subtitle: 'Pemantauan kualitas & debit air baku sebelum filtrasi multimedia',
+                countLabel: '4 Sensor Terpasang',
+                badgeColor: AppColors.rawWater,
+                icon: Icons.input_rounded,
               ),
+              const SizedBox(height: 10),
+              ...inletSensors.map(
+                (sensor) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: SensorMonitoringCard(sensor: sensor),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // 7. OUTLET MONITORING SECTION (3 Sensors)
+              _buildSectionHeader(
+                title: 'Outlet Monitoring',
+                subtitle: 'Evaluasi hasil filtrasi bertingkat & sterilisasi sinar UV',
+                countLabel: '3 Sensor Evaluasi',
+                badgeColor: AppColors.techBlue,
+                icon: Icons.output_rounded,
+              ),
+              const SizedBox(height: 10),
+              ...outletSensors.map((sensor) {
+                double? compVal;
+                if (sensor.type == SensorType.turbidityOutlet) {
+                  compVal = turbInletVal;
+                } else if (sensor.type == SensorType.phOutlet) {
+                  compVal = phInletVal;
+                } else if (sensor.type == SensorType.temperatureOutlet) {
+                  compVal = tempInletVal;
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: SensorMonitoringCard(
+                    sensor: sensor,
+                    inletComparisonValue: compVal,
+                  ),
+                );
+              }),
+
+              const SizedBox(height: 10),
+
+              // 8. Monitoring Chart Card (fl_chart)
+              const MonitoringChartCard(),
 
               const SizedBox(height: 16),
 
-              // 5. Recent Activity Section
-              _buildRecentActivitySection(context, provider, isDark),
+              // 9. Control Panel (Pusat Pengecekan Sensor)
+              const ControlPanelCard(),
+
+              const SizedBox(height: 16),
+
+              // 10. Recent Activity Section
+              const RecentActivityCard(),
 
               const SizedBox(height: 24),
+              // Footer
+              Center(
+                child: Text(
+                  'AquaMonitor • Single Page Monitoring Dashboard\nIoT Multimedia Water Treatment System',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppColors.textMuted.withValues(alpha: 0.8),
+                    height: 1.4,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -95,19 +193,14 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGreetingHeader(
-    BuildContext context,
-    SensorProvider provider,
-    bool isDark,
-  ) {
+  Widget _buildHeaderGreeting(BuildContext context, SensorSimulationProvider provider) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,27 +208,31 @@ class DashboardScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Selamat Datang, Administrator',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : AppColors.navyBlue,
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'IoT Water Treatment Monitoring',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.navyBlue,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'Pantau sistem penjernihan air secara langsung melalui IoT.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
+                    SizedBox(height: 3),
+                    Text(
+                      'Pantau kondisi air sebelum dan sesudah proses penjernihan melalui sistem monitoring sensor IoT.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                        height: 1.3,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 10),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -145,7 +242,7 @@ class DashboardScreen extends StatelessWidget {
                 child: const Icon(
                   Icons.water_rounded,
                   color: AppColors.techBlue,
-                  size: 20,
+                  size: 22,
                 ),
               ),
             ],
@@ -155,19 +252,12 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(
-                Icons.schedule_rounded,
-                size: 13,
-                color: AppColors.textMuted,
-              ),
+              const Icon(Icons.schedule_rounded, size: 12, color: AppColors.textMuted),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   'Pembaruan: ${DateFormatter.formatFull(provider.device.lastSync)}',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AppColors.textMuted,
-                  ),
+                  style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -175,19 +265,15 @@ class DashboardScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: provider.isMonitoring
-                      ? AppColors.statusNormalBg
-                      : AppColors.statusWarningBg,
+                  color: provider.isMonitoring ? AppColors.statusNormalBg : AppColors.statusWarningBg,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  provider.isMonitoring ? 'Auto-Sync' : 'Paused',
+                  provider.isMonitoring ? 'Auto-Sync Active' : 'Paused',
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
-                    color: provider.isMonitoring
-                        ? AppColors.statusNormal
-                        : AppColors.statusWarning,
+                    color: provider.isMonitoring ? AppColors.statusNormal : AppColors.statusWarning,
                   ),
                 ),
               ),
@@ -198,246 +284,68 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPipeQuickShortcuts(BuildContext context, bool isDark) {
-    return Row(
-      children: [
-        Expanded(
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const InletMonitoringScreen()),
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.rawWater.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.input_rounded, size: 16, color: AppColors.rawWater),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Jalur Inlet', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        Text('Air Baku (4 Sensor)', style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const OutletMonitoringScreen()),
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkCard : Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.techBlue.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.output_rounded, size: 16, color: AppColors.techBlue),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Jalur Outlet', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        Text('Air Hasil (3 Sensor)', style: TextStyle(fontSize: 9, color: AppColors.textMuted)),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textMuted),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecentActivitySection(
-    BuildContext context,
-    SensorProvider provider,
-    bool isDark,
-  ) {
-    final activities = provider.notifications.take(4).toList();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
+  Widget _buildSectionHeader({
+    required String title,
+    required String subtitle,
+    required String countLabel,
+    required Color badgeColor,
+    required IconData icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.techBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.history_rounded,
-                      color: AppColors.techBlue,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Aktivitas Terbaru Sistem',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : AppColors.navyBlue,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                '${provider.notifications.length} Catatan',
-                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-
-          if (activities.isEmpty) ...[
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Text('Belum ada riwayat aktivitas.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-              ),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: badgeColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ] else ...[
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: activities.length,
-              separatorBuilder: (context, index) => const Divider(height: 14),
-              itemBuilder: (ctx, i) {
-                final notif = activities[i];
-                Color dotColor;
-                switch (notif.type) {
-                  case NotificationType.success:
-                    dotColor = AppColors.statusNormal;
-                    break;
-                  case NotificationType.warning:
-                    dotColor = AppColors.statusWarning;
-                    break;
-                  case NotificationType.critical:
-                    dotColor = AppColors.statusCritical;
-                    break;
-                  case NotificationType.info:
-                    dotColor = AppColors.techBlue;
-                    break;
-                }
-
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Icon(icon, color: badgeColor, size: 16),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 4),
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: dotColor,
-                        shape: BoxShape.circle,
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.navyBlue,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  notif.title,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark ? Colors.white : AppColors.textPrimary,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                DateFormatter.timeAgo(notif.timestamp),
-                                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            notif.message,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? AppColors.textMuted : AppColors.textSecondary,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: badgeColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        countLabel,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: badgeColor,
+                        ),
                       ),
                     ),
                   ],
-                );
-              },
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );

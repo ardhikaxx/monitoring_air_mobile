@@ -1,4 +1,4 @@
-enum NotificationType {
+enum ActivityType {
   success,
   warning,
   critical,
@@ -6,50 +6,50 @@ enum NotificationType {
 
   String get label {
     switch (this) {
-      case NotificationType.success:
+      case ActivityType.success:
         return 'Sukses';
-      case NotificationType.warning:
+      case ActivityType.warning:
         return 'Peringatan';
-      case NotificationType.critical:
+      case ActivityType.critical:
         return 'Kritis';
-      case NotificationType.info:
+      case ActivityType.info:
         return 'Informasi';
     }
   }
 }
 
-class NotificationModel {
+class ActivityModel {
   final String id;
   final String title;
-  final String message;
+  final String description;
   final String? sensorId;
   final DateTime timestamp;
-  final NotificationType type;
+  final ActivityType type;
   final bool isRead;
 
-  NotificationModel({
+  ActivityModel({
     required this.id,
     required this.title,
-    required this.message,
+    required this.description,
     this.sensorId,
     required this.timestamp,
     required this.type,
     this.isRead = false,
   });
 
-  NotificationModel copyWith({
+  ActivityModel copyWith({
     String? id,
     String? title,
-    String? message,
+    String? description,
     String? sensorId,
     DateTime? timestamp,
-    NotificationType? type,
+    ActivityType? type,
     bool? isRead,
   }) {
-    return NotificationModel(
+    return ActivityModel(
       id: id ?? this.id,
       title: title ?? this.title,
-      message: message ?? this.message,
+      description: description ?? this.description,
       sensorId: sensorId ?? this.sensorId,
       timestamp: timestamp ?? this.timestamp,
       type: type ?? this.type,

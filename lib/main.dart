@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_theme.dart';
-import 'providers/sensor_provider.dart';
-import 'screens/splash_screen.dart';
+import 'providers/sensor_simulation_provider.dart';
+import 'screens/dashboard_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,11 +12,11 @@ Future<void> main() async {
   // Initialize Indonesian locale formatting
   await initializeDateFormatting('id_ID', null);
 
-  // Set system UI overlay style
+  // Set clean system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
       systemNavigationBarColor: Colors.white,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
@@ -24,7 +24,7 @@ Future<void> main() async {
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => SensorProvider(),
+      create: (_) => SensorSimulationProvider(),
       child: const AquaMonitorApp(),
     ),
   );
@@ -35,15 +35,11 @@ class AquaMonitorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<SensorProvider>();
-
     return MaterialApp(
       title: 'AquaMonitor – IoT Water Treatment',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: const SplashScreen(),
+      home: const DashboardScreen(),
     );
   }
 }

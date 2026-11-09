@@ -1,0 +1,200 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/constants/app_colors.dart';
+import '../models/device_model.dart';
+import '../providers/sensor_simulation_provider.dart';
+import 'activity_bottom_sheet.dart';
+import 'settings_bottom_sheet.dart';
+
+class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
+  const AppBarHeader({super.key});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(66.0);
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<SensorSimulationProvider>();
+    final isOnline = provider.device.status == DeviceConnectionStatus.online;
+    final isUnstable = provider.device.status == DeviceConnectionStatus.unstable;
+    final unread = provider.unreadActivitiesCount;
+
+    Color statusColor = isOnline
+        ? AppColors.statusNormal
+        : isUnstable
+            ? AppColors.statusWarning
+            : AppColors.statusCritical;
+
+    return AppBar(
+      elevation: 0,
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1.0),
+        child: Container(
+          color: AppColors.borderLight,
+          height: 1.0,
+        ),
+      ),
+      leadingWidth: 48,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 14.0),
+        child: Center(
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.accentCyan, AppColors.techBlue],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.techBlue.withValues(alpha: 0.25),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.water_drop_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+        ),
+      ),
+      titleSpacing: 8,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'AquaMonitor',
+                style: TextStyle(
+                  color: AppColors.navyBlue,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Connection Status Pill
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.35), width: 0.8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      provider.device.status.label.toUpperCase(),
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 1),
+          const Text(
+            'Water Treatment Monitoring System',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        // Settings Button
+        IconButton(
+          icon: const Icon(
+            Icons.tune_rounded,
+            color: AppColors.navyBlue,
+            size: 22,
+          ),
+          tooltip: 'Pengaturan Simulasi',
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => const SettingsBottomSheet(),
+            );
+          },
+        ),
+        // Notifications Button
+        IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(
+                Icons.notifications_outlined,
+                color: AppColors.navyBlue,
+                size: 23,
+              ),
+              if (unread > 0)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.statusCritical,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      unread > 9 ? '9+' : '$unread',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          tooltip: 'Notifikasi & Aktivitas',
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (ctx) => const ActivityBottomSheet(),
+            );
+          },
+        ),
+        const SizedBox(width: 4),
+      ],
+    );
+  }
+}

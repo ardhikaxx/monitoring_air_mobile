@@ -3,7 +3,7 @@ import '../core/constants/app_colors.dart';
 import '../core/utils/date_formatter.dart';
 import '../models/sensor_model.dart';
 import '../models/sensor_reading_model.dart';
-import '../screens/sensor_detail_screen.dart';
+import 'sensor_detail_bottom_sheet.dart';
 import 'sensor_gauge.dart';
 import 'sensor_mini_chart.dart';
 import 'sensor_status_badge.dart';
@@ -254,12 +254,7 @@ class SensorMonitoringCard extends StatelessWidget {
                 ),
                 TextButton.icon(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SensorDetailScreen(sensorId: sensor.id),
-                      ),
-                    );
+                    SensorDetailBottomSheet.show(context, sensor.id);
                   },
                   icon: const Text('Detail', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   label: const Icon(Icons.arrow_forward_rounded, size: 14),

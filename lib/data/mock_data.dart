@@ -1,6 +1,6 @@
 import 'dart:math';
+import '../models/activity_model.dart';
 import '../models/device_model.dart';
-import '../models/notification_model.dart';
 import '../models/sensor_model.dart';
 import '../models/sensor_reading_model.dart';
 import '../models/sensor_test_result_model.dart';
@@ -18,7 +18,6 @@ class MockData {
     final List<SensorReadingModel> list = [];
     for (int i = 24; i >= 0; i--) {
       final time = _now.subtract(Duration(hours: i));
-      // Add slight diurnal wave plus random noise
       final wave = sin(i * 0.25) * (variance * 0.5);
       final noise = (_random.nextDouble() - 0.5) * variance;
       final val = double.parse((baseValue + wave + noise).toStringAsFixed(2));
@@ -87,7 +86,7 @@ class MockData {
         unit: 'pH',
         currentValue: 6.3,
         lastUpdated: now,
-        status: SensorStatus.warning, // Slightly below 6.5 neutral
+        status: SensorStatus.warning, // Slightly acidic 6.3
         minThreshold: 6.5,
         maxThreshold: 8.5,
         hardwareSpec: 'Analog pH Meter Pro Kit (E-201-C BNC Probe)',
@@ -174,7 +173,7 @@ class MockData {
         unit: 'NTU',
         currentValue: 3.0,
         lastUpdated: now,
-        status: SensorStatus.normal, // < 5 NTU is high purity!
+        status: SensorStatus.normal, // < 5 NTU is crystal clear
         minThreshold: 0.0,
         maxThreshold: 5.0,
         hardwareSpec: 'DFRobot High Precision Turbidity Sensor V2.0',
@@ -203,7 +202,7 @@ class MockData {
         unit: 'pH',
         currentValue: 7.0,
         lastUpdated: now,
-        status: SensorStatus.normal, // Neutral 7.0!
+        status: SensorStatus.normal, // Neutral 7.0
         minThreshold: 6.5,
         maxThreshold: 8.5,
         hardwareSpec: 'Industrial Grade BNC Glass pH Electrode Probe',
@@ -254,38 +253,38 @@ class MockData {
     ];
   }
 
-  static List<NotificationModel> get initialNotifications {
+  static List<ActivityModel> get initialActivities {
     final now = DateTime.now();
     return [
-      NotificationModel(
-        id: 'NOTIF-01',
+      ActivityModel(
+        id: 'ACT-01',
         title: 'Filtrasi Berjalan Efektif',
-        message: 'Kekeruhan air berhasil diturunkan dari 85.0 NTU (inlet) menjadi 3.0 NTU (outlet).',
-        timestamp: now.subtract(const Duration(minutes: 8)),
-        type: NotificationType.success,
+        description: 'Kekeruhan air berhasil diturunkan dari 85.0 NTU (inlet) menjadi 3.0 NTU (outlet).',
+        timestamp: now.subtract(const Duration(minutes: 6)),
+        type: ActivityType.success,
         sensorId: 'SEN-IN-OUT-TURB',
       ),
-      NotificationModel(
-        id: 'NOTIF-02',
-        title: 'Sensor pH Inlet Mendekati Batas',
-        message: 'Nilai pH air baku terbaca 6.3 pH (sedikit asam). Filter multimedia aktif melakukan stabilisasi.',
-        timestamp: now.subtract(const Duration(minutes: 25)),
-        type: NotificationType.warning,
+      ActivityModel(
+        id: 'ACT-02',
+        title: 'Sensor pH Inlet Terbaca 6.3',
+        description: 'Nilai pH air baku sedikit di bawah batas netral. Lapisan filter mineral bekerja menyerap keasaman.',
+        timestamp: now.subtract(const Duration(minutes: 22)),
+        type: ActivityType.warning,
         sensorId: 'SEN-IN-PH',
       ),
-      NotificationModel(
-        id: 'NOTIF-03',
-        title: 'Diagnostik Seluruh Sensor Selesai',
-        message: 'Pengujian berkala terhadap 7 sensor utama berhasil dijalankan dengan status lolos (Passed).',
-        timestamp: now.subtract(const Duration(hours: 2)),
-        type: NotificationType.info,
+      ActivityModel(
+        id: 'ACT-03',
+        title: 'Diagnostik 7 Sensor Selesai',
+        description: 'Pengujian berkala terhadap seluruh sensor utama selesai dengan status lolos (Passed).',
+        timestamp: now.subtract(const Duration(hours: 1, minutes: 40)),
+        type: ActivityType.info,
       ),
-      NotificationModel(
-        id: 'NOTIF-04',
+      ActivityModel(
+        id: 'ACT-04',
         title: 'ESP32 Terhubung ke AquaNet',
-        message: 'Koneksi telemetri Wi-Fi industrial stabil pada sinyal -62 dBm.',
-        timestamp: now.subtract(const Duration(hours: 4)),
-        type: NotificationType.success,
+        description: 'Koneksi telemetri Wi-Fi industrial terhubung stabil pada sinyal -62 dBm.',
+        timestamp: now.subtract(const Duration(hours: 3, minutes: 15)),
+        type: ActivityType.success,
       ),
     ];
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
 import '../models/sensor_model.dart';
 import '../models/sensor_reading_model.dart';
-import '../screens/sensor_detail_screen.dart';
+import 'sensor_detail_bottom_sheet.dart';
 
 class WaterTreatmentDiagram extends StatelessWidget {
   final List<SensorModel> sensors;
@@ -400,12 +400,7 @@ class WaterTreatmentDiagram extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SensorDetailScreen(sensorId: sensor.id),
-          ),
-        );
+        SensorDetailBottomSheet.show(context, sensor.id);
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(
