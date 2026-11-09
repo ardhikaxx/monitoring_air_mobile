@@ -26,10 +26,10 @@ void main() {
     // Verify Single Page Dashboard is rendered with its primary sections
     expect(find.byType(DashboardScreen), findsOneWidget);
     expect(find.text('AquaMonitor'), findsOneWidget);
-    expect(find.text('IoT Water Treatment Monitoring'), findsOneWidget);
+    expect(find.text('Dashboard Monitoring'), findsOneWidget);
     expect(find.text('Total Sensor'), findsOneWidget);
-    expect(find.text('Inlet Monitoring'), findsOneWidget);
-    expect(find.text('Outlet Monitoring'), findsOneWidget);
+    expect(find.text('Sensor Inlet (Air Baku)'), findsOneWidget);
+    expect(find.text('Sensor Outlet (Air Hasil)'), findsOneWidget);
 
     provider.dispose();
   });

@@ -28,7 +28,7 @@ class _DeviceStatusCardState extends State<DeviceStatusCard>
       duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.35).animate(
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.3).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
@@ -54,81 +54,59 @@ class _DeviceStatusCardState extends State<DeviceStatusCard>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyBlue.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row: Controller Icon, Name, ID, LED Pulse
+          // Header: Controller name, ID, and Status Pill
           Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.techBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.borderLight),
                 ),
                 child: const Icon(
                   Icons.developer_board_rounded,
-                  color: AppColors.techBlue,
-                  size: 22,
+                  color: AppColors.navyBlue,
+                  size: 20,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      device.name,
-                      style: const TextStyle(
+                    const Text(
+                      'ESP32 Controller',
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.navyBlue,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Text(
-                          'ID: ${device.deviceId}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '• ${device.firmwareVersion}',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 1),
+                    Text(
+                      device.deviceId,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textMuted,
+                      ),
                     ),
                   ],
                 ),
               ),
-
-              // Virtual LED Indicator
+              // Status Badge with Pulsing LED
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
+                  color: statusColor.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                 ),
@@ -139,41 +117,32 @@ class _DeviceStatusCardState extends State<DeviceStatusCard>
                       AnimatedBuilder(
                         animation: _pulseAnimation,
                         builder: (context, child) {
-                          return Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                width: 12 * _pulseAnimation.value,
-                                height: 12 * _pulseAnimation.value,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: statusColor.withValues(
-                                    alpha: 0.35 / _pulseAnimation.value,
-                                  ),
+                          return Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: statusColor,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusColor.withValues(alpha: 0.4),
+                                  blurRadius: 4 * _pulseAnimation.value,
                                 ),
-                              ),
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: statusColor,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           );
                         },
                       )
                     else
                       Container(
-                        width: 8,
-                        height: 8,
+                        width: 7,
+                        height: 7,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: statusColor,
                         ),
                       ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 5),
                     Text(
                       device.status.label,
                       style: TextStyle(
@@ -188,50 +157,39 @@ class _DeviceStatusCardState extends State<DeviceStatusCard>
             ],
           ),
 
-          const SizedBox(height: 14),
-          const Divider(height: 1),
           const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
 
-          // Metadata Grid: Wi-Fi, IP, Uptime, Last Communication
+          // 4-item clean telemetry info grid
           Row(
             children: [
               Expanded(
                 child: _buildInfoItem(
                   icon: Icons.wifi_rounded,
-                  label: 'Sinyal Wi-Fi',
-                  value: isOnline
-                      ? '${device.wifiRssi} dBm (${device.signalPercentage}%)'
-                      : 'Terputus',
-                  valueColor: isOnline ? AppColors.techBlue : AppColors.textMuted,
+                  label: 'Wi-Fi',
+                  value: isOnline ? '${device.wifiRssi} dBm' : 'Offline',
                 ),
               ),
               Expanded(
                 child: _buildInfoItem(
                   icon: Icons.lan_outlined,
-                  label: 'Alamat IP Telemetri',
+                  label: 'IP',
                   value: device.ipAddress,
-                  valueColor: AppColors.textPrimary,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
               Expanded(
                 child: _buildInfoItem(
                   icon: Icons.timer_outlined,
-                  label: 'Uptime Perangkat',
-                  value: isOnline ? device.formattedUptime : '0j 0m 0s',
-                  valueColor: AppColors.textPrimary,
+                  label: 'Uptime',
+                  value: isOnline ? device.formattedUptime : '0j',
                 ),
               ),
               Expanded(
                 child: _buildInfoItem(
                   icon: Icons.sync_rounded,
-                  label: 'Waktu Komunikasi',
+                  label: 'Sync',
                   value: DateFormatter.formatShortTime(device.lastSync),
-                  valueColor: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -245,38 +203,35 @@ class _DeviceStatusCardState extends State<DeviceStatusCard>
     required IconData icon,
     required String label,
     required String value,
-    required Color valueColor,
   }) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 15, color: AppColors.textMuted),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: AppColors.textMuted,
-                  fontWeight: FontWeight.w500,
-                ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: AppColors.textMuted),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textMuted,
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(height: 1),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: valueColor,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: AppColors.navyBlue,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

@@ -30,56 +30,44 @@ class SensorPhGauge extends StatelessWidget {
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                // Color Track
-                Container(
-                  height: 10,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFEF4444), // Red 0-4 (Asam Kuat)
-                        Color(0xFFF59E0B), // Orange 4-6.5 (Asam Ringan)
-                        Color(0xFF10B981), // Green 6.5-8.5 (Netral Ideal)
-                        Color(0xFF06B6D4), // Cyan 8.5-10 (Basa Ringan)
-                        Color(0xFF6366F1), // Indigo 10-14 (Basa Kuat)
-                      ],
-                      stops: [0.0, 0.40, 0.50, 0.65, 1.0],
-                    ),
-                  ),
-                ),
-
-                // Ideal Range Highlight Box (6.5 to 8.5)
-                Positioned(
-                  left: (6.5 / 14.0) * width,
-                  width: ((8.5 - 6.5) / 14.0) * width,
-                  top: -2,
-                  child: Container(
-                    height: 14,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(3),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                  ),
-                ),
-
-                // Value Pointer Marker
-                Positioned(
-                  left: pointerLeft - 7,
-                  top: -6,
-                  child: Container(
-                    width: 14,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: AppColors.navyBlue,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.white, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.25),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                // Flat segmented Track (No gradients)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    height: 8,
+                    child: Row(
+                      children: [
+                        // Asam (0 - 6.5)
+                        Expanded(
+                          flex: 65,
+                          child: Container(color: AppColors.statusWarning.withValues(alpha: 0.35)),
+                        ),
+                        // Netral Ideal (6.5 - 8.5)
+                        Expanded(
+                          flex: 20,
+                          child: Container(color: AppColors.statusNormal),
+                        ),
+                        // Basa (8.5 - 14)
+                        Expanded(
+                          flex: 55,
+                          child: Container(color: AppColors.techBlue.withValues(alpha: 0.35)),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+
+                // Pointer Marker
+                Positioned(
+                  left: pointerLeft - 6,
+                  top: -4,
+                  child: Container(
+                    width: 12,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: AppColors.navyBlue,
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(color: Colors.white, width: 1.5),
                     ),
                   ),
                 ),
@@ -88,14 +76,14 @@ class SensorPhGauge extends StatelessWidget {
           },
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
 
         // Scale Labels
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('0 Asam', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
-            Text('6.5 - 8.5 Ideal',
+            Text('6.5 – 8.5 Normal',
                 style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

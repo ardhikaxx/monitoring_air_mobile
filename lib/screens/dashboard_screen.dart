@@ -41,17 +41,17 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Hero / Header Greeting & Dynamic Date/Time
-              _buildHeaderGreeting(context, provider),
+              // 1. Sleek Header Title & Timestamp
+              _buildHeaderTitle(provider),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
               // 2. Device Connection Status Card (ESP32)
               DeviceStatusCard(device: provider.device),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
-              // 3. Statistical Summary Cards (7 Sensors Total, Normal, Warning, Error/Offline, Flow Rate)
+              // 3. Statistical Summary (5 key metrics in one sleek bar)
               StatisticsCard(
                 totalSensors: provider.totalSensorsCount,
                 normalCount: provider.normalSensorsCount,
@@ -60,40 +60,36 @@ class DashboardScreen extends StatelessWidget {
                 flowRate: provider.device.flowRate,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // 4. Water Quality Comparison Card (Inlet vs Outlet)
               WaterQualityComparisonCard(comparison: provider.waterQualityComparison),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
 
-              // 5. INLET MONITORING SECTION (4 Sensors)
+              // 5. INLET SENSORS (4 Sensors)
               _buildSectionHeader(
-                title: 'Inlet Monitoring',
-                subtitle: 'Pemantauan kualitas & debit air baku sebelum filtrasi multimedia',
-                countLabel: '4 Sensor Terpasang',
-                badgeColor: AppColors.rawWater,
+                title: 'Sensor Inlet (Air Baku)',
+                countLabel: '4 Sensor',
                 icon: Icons.input_rounded,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               ...inletSensors.map(
                 (sensor) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
+                  padding: const EdgeInsets.only(bottom: 10.0),
                   child: SensorMonitoringCard(sensor: sensor),
                 ),
               ),
 
               const SizedBox(height: 10),
 
-              // 6. OUTLET MONITORING SECTION (3 Sensors)
+              // 6. OUTLET SENSORS (3 Sensors)
               _buildSectionHeader(
-                title: 'Outlet Monitoring',
-                subtitle: 'Evaluasi hasil filtrasi bertingkat & sterilisasi sinar UV',
-                countLabel: '3 Sensor Evaluasi',
-                badgeColor: AppColors.techBlue,
+                title: 'Sensor Outlet (Air Hasil)',
+                countLabel: '3 Sensor',
                 icon: Icons.output_rounded,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               ...outletSensors.map((sensor) {
                 double? compVal;
                 if (sensor.type == SensorType.turbidityOutlet) {
@@ -105,7 +101,7 @@ class DashboardScreen extends StatelessWidget {
                 }
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
+                  padding: const EdgeInsets.only(bottom: 10.0),
                   child: SensorMonitoringCard(
                     sensor: sensor,
                     inletComparisonValue: compVal,
@@ -118,16 +114,15 @@ class DashboardScreen extends StatelessWidget {
               // 7. Monitoring Chart Card (fl_chart)
               const MonitoringChartCard(),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               // Footer
-              Center(
+              const Center(
                 child: Text(
-                  'AquaMonitor • Single Page Monitoring Dashboard\nIoT Multimedia Water Treatment System',
+                  'AquaMonitor • IoT Water Treatment System',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 10,
-                    color: AppColors.textMuted.withValues(alpha: 0.8),
-                    height: 1.4,
+                    fontSize: 11,
+                    color: AppColors.textMuted,
                   ),
                 ),
               ),
@@ -139,161 +134,108 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeaderGreeting(BuildContext context, SensorSimulationProvider provider) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'IoT Water Treatment Monitoring',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.navyBlue,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Pantau kondisi air sebelum dan sesudah proses penjernihan melalui sistem monitoring sensor IoT.',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _buildHeaderTitle(SensorSimulationProvider provider) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Dashboard Monitoring',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.navyBlue,
+                letterSpacing: -0.3,
               ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.techBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.water_rounded,
-                  color: AppColors.techBlue,
-                  size: 22,
-                ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Pembaruan ${DateFormatter.formatShortTime(provider.device.lastSync)} WIB',
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textMuted,
               ),
-            ],
+            ),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: provider.isMonitoring ? AppColors.statusNormalBg : AppColors.statusWarningBg,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: provider.isMonitoring ? AppColors.statusNormalBorder : AppColors.statusWarningBorder,
+              width: 0.8,
+            ),
           ),
-          const SizedBox(height: 10),
-          const Divider(height: 1),
-          const SizedBox(height: 8),
-          Row(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.schedule_rounded, size: 12, color: AppColors.textMuted),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: provider.isMonitoring ? AppColors.statusNormal : AppColors.statusWarning,
+                ),
+              ),
               const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  'Pembaruan: ${DateFormatter.formatFull(provider.device.lastSync)}',
-                  style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: provider.isMonitoring ? AppColors.statusNormalBg : AppColors.statusWarningBg,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  provider.isMonitoring ? 'Auto-Sync Active' : 'Paused',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: provider.isMonitoring ? AppColors.statusNormal : AppColors.statusWarning,
-                  ),
+              Text(
+                provider.isMonitoring ? 'Auto-Sync' : 'Paused',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: provider.isMonitoring ? AppColors.statusNormal : AppColors.statusWarning,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildSectionHeader({
     required String title,
-    required String subtitle,
     required String countLabel,
-    required Color badgeColor,
     required IconData icon,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: AppColors.navyBlue, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.navyBlue,
+              ),
             ),
-            child: Icon(icon, color: badgeColor, size: 16),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppColors.borderLight),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.navyBlue,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: badgeColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
-                      ),
-                      child: Text(
-                        countLabel,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: badgeColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                ),
-              ],
+          child: Text(
+            countLabel,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -12,7 +12,7 @@ class SensorMiniChart extends StatelessWidget {
     super.key,
     required this.readings,
     this.lineColor = AppColors.techBlue,
-    this.height = 45,
+    this.height = 42,
   });
 
   @override
@@ -68,14 +68,7 @@ class SensorMiniChart extends StatelessWidget {
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
-                gradient: LinearGradient(
-                  colors: [
-                    lineColor.withValues(alpha: 0.25),
-                    lineColor.withValues(alpha: 0.0),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
+                color: lineColor.withValues(alpha: 0.06), // Flat subtle tint, no gradient
               ),
             ),
           ],

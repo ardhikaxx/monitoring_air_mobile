@@ -9,7 +9,7 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
   const AppBarHeader({super.key});
 
   @override
-  Size get preferredSize => const Size.fromHeight(66.0);
+  Size get preferredSize => const Size.fromHeight(60.0);
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +25,8 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       elevation: 0,
+      scrolledUnderElevation: 0,
       backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1.0),
         child: Container(
@@ -34,7 +34,7 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
           height: 1.0,
         ),
       ),
-      leadingWidth: 48,
+      leadingWidth: 50,
       leading: Padding(
         padding: const EdgeInsets.only(left: 14.0),
         child: Center(
@@ -42,24 +42,13 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.accentCyan, AppColors.techBlue],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.techBlue.withValues(alpha: 0.25),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: AppColors.navyBlue,
+              borderRadius: BorderRadius.circular(9),
             ),
             child: const Icon(
               Icons.water_drop_rounded,
               color: Colors.white,
-              size: 22,
+              size: 20,
             ),
           ),
         ),
@@ -85,9 +74,9 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.35), width: 0.8),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 0.8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -117,7 +106,7 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
           const SizedBox(height: 1),
           const Text(
-            'Water Treatment Monitoring System',
+            'Water Treatment System',
             style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 10,
@@ -127,12 +116,11 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       actions: [
-        // Settings Button
         IconButton(
           icon: const Icon(
             Icons.tune_rounded,
             color: AppColors.navyBlue,
-            size: 22,
+            size: 21,
           ),
           tooltip: 'Pengaturan Simulasi',
           onPressed: () {

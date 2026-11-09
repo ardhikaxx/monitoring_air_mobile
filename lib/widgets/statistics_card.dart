@@ -19,165 +19,98 @@ class StatisticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Column(
-      children: [
-        // Top 3 items
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricItem(
-                context,
-                title: 'Total Sensor',
-                value: '$totalSensors',
-                subtitle: '4 Inlet • 3 Outlet',
-                icon: Icons.hub_outlined,
-                accentColor: AppColors.techBlue,
-                bgColor: AppColors.techBlue.withValues(alpha: 0.08),
-                isDark: isDark,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetricItem(
-                context,
-                title: 'Normal',
-                value: '$normalCount',
-                subtitle: 'Parameter Stabil',
-                icon: Icons.check_circle_outline_rounded,
-                accentColor: AppColors.statusNormal,
-                bgColor: AppColors.statusNormalBg,
-                isDark: isDark,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        // Bottom 3 items
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricItem(
-                context,
-                title: 'Warning',
-                value: '$warningCount',
-                subtitle: 'Mendekati Batas',
-                icon: Icons.warning_amber_rounded,
-                accentColor: AppColors.statusWarning,
-                bgColor: AppColors.statusWarningBg,
-                isDark: isDark,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetricItem(
-                context,
-                title: 'Error / Offline',
-                value: '$errorOrOfflineCount',
-                subtitle: errorOrOfflineCount > 0 ? 'Perlu Tindakan' : 'Aman',
-                icon: Icons.error_outline_rounded,
-                accentColor: errorOrOfflineCount > 0
-                    ? AppColors.statusCritical
-                    : AppColors.statusOffline,
-                bgColor: errorOrOfflineCount > 0
-                    ? AppColors.statusCriticalBg
-                    : AppColors.statusOfflineBg,
-                isDark: isDark,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetricItem(
-                context,
-                title: 'Flow Rate',
-                value: flowRate.toStringAsFixed(1),
-                subtitle: 'L/jam (Debit)',
-                icon: Icons.water_outlined,
-                accentColor: AppColors.accentCyan,
-                bgColor: AppColors.accentCyan.withValues(alpha: 0.1),
-                isDark: isDark,
-              ),
-            ),
-          ],
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildItem(
+            label: 'Total Sensor',
+            value: '$totalSensors',
+            valueColor: AppColors.navyBlue,
+            icon: Icons.sensors_rounded,
+          ),
+          _buildDivider(),
+          _buildItem(
+            label: 'Normal',
+            value: '$normalCount',
+            valueColor: AppColors.statusNormal,
+            icon: Icons.check_circle_rounded,
+          ),
+          _buildDivider(),
+          _buildItem(
+            label: 'Warning',
+            value: '$warningCount',
+            valueColor: AppColors.statusWarning,
+            icon: Icons.warning_rounded,
+          ),
+          _buildDivider(),
+          _buildItem(
+            label: 'Error/Off',
+            value: '$errorOrOfflineCount',
+            valueColor: errorOrOfflineCount > 0 ? AppColors.statusCritical : AppColors.statusOffline,
+            icon: Icons.error_rounded,
+          ),
+          _buildDivider(),
+          _buildItem(
+            label: 'Debit Air',
+            value: '${flowRate.toStringAsFixed(0)} L/j',
+            valueColor: AppColors.techBlue,
+            icon: Icons.water_drop_rounded,
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildMetricItem(
-    BuildContext context, {
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color accentColor,
-    required Color bgColor,
-    required bool isDark,
-  }) {
+  Widget _buildDivider() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
+      width: 1,
+      height: 28,
+      color: AppColors.borderLight,
+    );
+  }
+
+  Widget _buildItem({
+    required String label,
+    required String value,
+    required Color valueColor,
+    required IconData icon,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: valueColor),
+            const SizedBox(width: 3),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppColors.textMuted,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: valueColor,
+            letterSpacing: -0.3,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.textMuted : AppColors.textSecondary,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Icon(icon, size: 14, color: accentColor),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white : AppColors.navyBlue,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 10,
-              color: isDark ? AppColors.textMuted : AppColors.textMuted,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -77,18 +77,11 @@ class _MonitoringChartCardState extends State<MonitoringChartCard> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.navyBlue.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,21 +90,14 @@ class _MonitoringChartCardState extends State<MonitoringChartCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
+              const Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.techBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.show_chart_rounded, color: AppColors.techBlue, size: 18),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Grafik Monitoring Sensor',
+                  Icon(Icons.show_chart_rounded, color: AppColors.techBlue, size: 18),
+                  SizedBox(width: 6),
+                  Text(
+                    'Grafik Tren Parameter',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: AppColors.navyBlue,
                     ),
@@ -120,10 +106,10 @@ class _MonitoringChartCardState extends State<MonitoringChartCard> {
               ),
               // Current Reading Info Tag
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.background,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   outletSensor != null
@@ -135,7 +121,7 @@ class _MonitoringChartCardState extends State<MonitoringChartCard> {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Parameter Selection Row
           SingleChildScrollView(
