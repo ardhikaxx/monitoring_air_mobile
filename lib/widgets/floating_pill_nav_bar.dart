@@ -18,11 +18,11 @@ class FloatingPillNavBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20, bottom: 14),
         child: Container(
-          height: 58,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          height: 60,
+          padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
             color: AppColors.navyBlue,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(32),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.12),
               width: 1,
@@ -30,8 +30,8 @@ class FloatingPillNavBar extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: AppColors.navyBlue.withValues(alpha: 0.35),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -76,26 +76,36 @@ class FloatingPillNavBar extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.techBlue : Colors.transparent,
-            borderRadius: BorderRadius.circular(24),
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 icon,
-                size: 16,
-                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.65),
+                size: 17,
+                color: isSelected ? AppColors.navyBlue : Colors.white.withValues(alpha: 0.7),
               ),
-              const SizedBox(width: 5),
+              const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.65),
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? AppColors.navyBlue : Colors.white.withValues(alpha: 0.7),
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                   letterSpacing: -0.2,
                 ),
                 maxLines: 1,
