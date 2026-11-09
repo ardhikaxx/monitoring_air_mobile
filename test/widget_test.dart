@@ -1,30 +1,34 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
 import 'package:monitoring_air_mobile/main.dart';
+import 'package:monitoring_air_mobile/providers/sensor_provider.dart';
+import 'package:monitoring_air_mobile/screens/dashboard_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('AquaMonitorApp smoke test', (WidgetTester tester) async {
+    final provider = SensorProvider();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const AquaMonitorApp(),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Initial splash frame
+    expect(find.text('AquaMonitor'), findsOneWidget);
+    expect(find.text('Monitoring Water Treatment System'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Advance timer past splash duration (2.4s)
+    await tester.pump(const Duration(milliseconds: 2500));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // Verify Dashboard screen is now rendered
+    expect(find.byType(DashboardScreen), findsOneWidget);
+    expect(find.text('Selamat Datang, Administrator'), findsOneWidget);
+    expect(find.text('7 Sensor Aktif Terpasang'), findsNothing); // that's on monitoring tab
+
+    // Dispose provider to clean up periodic timer
+    provider.dispose();
   });
 }
