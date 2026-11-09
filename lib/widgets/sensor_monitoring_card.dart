@@ -5,9 +5,10 @@ import '../models/sensor_reading_model.dart';
 import 'sensor_detail_bottom_sheet.dart';
 import 'sensor_gauge.dart';
 import 'sensor_mini_chart.dart';
+import 'sensor_radial_arc_gauge.dart';
 import 'sensor_status_badge.dart';
 
-class SensorMonitoringCard extends StatelessWidget {
+class SensorMonitoringCard extends StatefulWidget {
   final SensorModel sensor;
   final double? inletComparisonValue; // for outlet sensors comparison
 
@@ -18,7 +19,16 @@ class SensorMonitoringCard extends StatelessWidget {
   });
 
   @override
+  State<SensorMonitoringCard> createState() => _SensorMonitoringCardState();
+}
+
+class _SensorMonitoringCardState extends State<SensorMonitoringCard> {
+  // Default to gauge view (matching image.png)
+  bool _showGauge = true;
+
+  @override
   Widget build(BuildContext context) {
+    final sensor = widget.sensor;
     final isPh = sensor.type == SensorType.phInlet || sensor.type == SensorType.phOutlet;
     final isOutlet = sensor.location == SensorLocation.outlet;
 
@@ -34,7 +44,7 @@ class SensorMonitoringCard extends StatelessWidget {
       case SensorType.phInlet:
       case SensorType.phOutlet:
         sensorIcon = Icons.science_outlined;
-        accentColor = isOutlet ? AppColors.statusNormal : AppColors.statusWarning;
+        accentColor = const Color(0xFF1677C8);
         break;
       case SensorType.flowRateInlet:
         sensorIcon = Icons.speed_rounded;
@@ -121,47 +131,15 @@ class SensorMonitoringCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // 2. Main Reading Value + Threshold & Comparison Badge
+          // 2. View Switcher Strip (Gauge Speedometer vs Tren 24j)
           Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Value + Unit
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    sensor.status == SensorStatus.offline
-                        ? '--'
-                        : sensor.currentValue.toStringAsFixed(
-                            sensor.type == SensorType.phInlet || sensor.type == SensorType.phOutlet
-                                ? 2
-                                : 1,
-                          ),
-                    style: const TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.navyBlue,
-                      letterSpacing: -0.8,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    sensor.unit,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              // Comparison Tag (for Outlet Sensors) or Threshold Range (for Inlet)
-              if (isOutlet && inletComparisonValue != null && sensor.status != SensorStatus.offline)
-                _buildComparisonTag(sensor, inletComparisonValue!)
+              // Target or Comparison Indicator
+              if (isOutlet && widget.inletComparisonValue != null && sensor.status != SensorStatus.offline)
+                _buildComparisonTag(sensor, widget.inletComparisonValue!)
               else
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
@@ -170,39 +148,118 @@ class SensorMonitoringCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: AppColors.borderLight, width: 0.8),
                   ),
-                  child: Text(
-                    'Target: ${sensor.minThreshold.toStringAsFixed(0)}–${sensor.maxThreshold.toStringAsFixed(0)} ${sensor.unit}',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF8BD3C7),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Target: ${sensor.minThreshold.toStringAsFixed(0)}–${sensor.maxThreshold.toStringAsFixed(0)} ${sensor.unit}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+
+              // Segmented Switch [Gauge | Tren]
+              Container(
+                height: 26,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildSegmentButton(
+                      label: 'Gauge',
+                      icon: Icons.speed_rounded,
+                      isActive: _showGauge,
+                      onTap: () {
+                        if (!_showGauge) setState(() => _showGauge = true);
+                      },
+                    ),
+                    _buildSegmentButton(
+                      label: 'Tren',
+                      icon: Icons.show_chart_rounded,
+                      isActive: !_showGauge,
+                      onTap: () {
+                        if (_showGauge) setState(() => _showGauge = false);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
 
           const SizedBox(height: 12),
 
-          // 3. Visual Graph Section (Trend Curve with Min/Avg/Max)
-          if (sensor.status != SensorStatus.offline) ...[
-            SensorMiniChart(
-              readings: sensor.readings,
-              lineColor: accentColor,
-              unit: sensor.unit,
-              minValue: sensor.minValue,
-              maxValue: sensor.maxValue,
-              avgValue: sensor.avgValue,
-              height: 52,
-            ),
-            // For pH: Also display the 0-14 acid/neutral/base scale meter below the trend!
-            if (isPh) ...[
-              const SizedBox(height: 8),
-              SensorPhGauge(
-                currentPh: sensor.currentValue,
-                minNormal: sensor.minThreshold,
-                maxNormal: sensor.maxThreshold,
+          // 3. Main Graphic Visual: Radial Arc Gauge or Trend Chart
+          if (_showGauge) ...[
+            // Radial Arc Gauge (Matching image.png)
+            Center(
+              child: SensorRadialArcGauge.fromSensor(
+                sensor: sensor,
+                customArcColor: accentColor,
+                width: 230,
+                height: 140,
               ),
+            ),
+            const SizedBox(height: 6),
+            // Quick 24h Summary Strip
+            if (sensor.status != SensorStatus.offline)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.borderLight, width: 0.8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatSnippet('Min', sensor.minValue, sensor.unit),
+                    Container(width: 1, height: 12, color: AppColors.borderLight),
+                    _buildStatSnippet('Avg', sensor.avgValue, sensor.unit),
+                    Container(width: 1, height: 12, color: AppColors.borderLight),
+                    _buildStatSnippet('Max', sensor.maxValue, sensor.unit),
+                  ],
+                ),
+              ),
+          ] else ...[
+            // Trend Line Chart View
+            if (sensor.status != SensorStatus.offline) ...[
+              SensorMiniChart(
+                readings: sensor.readings,
+                lineColor: accentColor,
+                unit: sensor.unit,
+                minValue: sensor.minValue,
+                maxValue: sensor.maxValue,
+                avgValue: sensor.avgValue,
+                height: 70,
+              ),
+              if (isPh) ...[
+                const SizedBox(height: 8),
+                SensorPhGauge(
+                  currentPh: sensor.currentValue,
+                  minNormal: sensor.minThreshold,
+                  maxNormal: sensor.maxThreshold,
+                ),
+              ],
             ],
           ],
 
@@ -253,11 +310,66 @@ class SensorMonitoringCard extends StatelessWidget {
     );
   }
 
+  Widget _buildSegmentButton({
+    required String label,
+    required IconData icon,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.navyBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 11,
+              color: isActive ? Colors.white : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                color: isActive ? Colors.white : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatSnippet(String title, double val, String unit) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$title: ',
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textMuted),
+        ),
+        Text(
+          '${val.toStringAsFixed(1)} $unit',
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.navyBlue),
+        ),
+      ],
+    );
+  }
+
   Widget _buildComparisonTag(SensorModel sensor, double inletVal) {
     if (sensor.type == SensorType.turbidityOutlet) {
       final reduction = ((inletVal - sensor.currentValue) / inletVal * 100).clamp(0, 100);
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: AppColors.statusNormalBg,
           borderRadius: BorderRadius.circular(6),
@@ -266,12 +378,12 @@ class SensorMonitoringCard extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.trending_down_rounded, size: 14, color: AppColors.statusNormal),
+            const Icon(Icons.trending_down_rounded, size: 13, color: AppColors.statusNormal),
             const SizedBox(width: 3),
             Text(
               '-${reduction.toStringAsFixed(1)}% vs Inlet',
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 color: AppColors.statusNormal,
               ),
@@ -283,7 +395,7 @@ class SensorMonitoringCard extends StatelessWidget {
       final diff = sensor.currentValue - inletVal;
       final sign = diff >= 0 ? '+' : '';
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: AppColors.lightTechBlue,
           borderRadius: BorderRadius.circular(6),
@@ -292,7 +404,7 @@ class SensorMonitoringCard extends StatelessWidget {
         child: Text(
           '$sign${diff.toStringAsFixed(2)} pH vs Inlet',
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.bold,
             color: AppColors.techBlue,
           ),
@@ -302,7 +414,7 @@ class SensorMonitoringCard extends StatelessWidget {
       final diff = sensor.currentValue - inletVal;
       final sign = diff >= 0 ? '+' : '';
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: const Color(0xFFFFF7ED),
           borderRadius: BorderRadius.circular(6),
@@ -311,7 +423,7 @@ class SensorMonitoringCard extends StatelessWidget {
         child: Text(
           '$sign${diff.toStringAsFixed(1)}°C vs Inlet',
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.bold,
             color: Color(0xFFF97316),
           ),

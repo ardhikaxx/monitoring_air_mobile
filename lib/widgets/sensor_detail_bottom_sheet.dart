@@ -3,10 +3,9 @@ import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../core/utils/date_formatter.dart';
 import '../models/sensor_model.dart';
-import '../models/sensor_reading_model.dart';
 import '../providers/sensor_simulation_provider.dart';
-import 'sensor_gauge.dart';
 import 'sensor_mini_chart.dart';
+import 'sensor_radial_arc_gauge.dart';
 import 'sensor_status_badge.dart';
 
 class SensorDetailBottomSheet extends StatelessWidget {
@@ -29,7 +28,7 @@ class SensorDetailBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SensorSimulationProvider>();
-    final sensor = provider.getSensorById(sensorId);
+    final SensorModel? sensor = provider.getSensorById(sensorId);
 
     if (sensor == null) {
       return Container(
@@ -41,8 +40,6 @@ class SensorDetailBottomSheet extends StatelessWidget {
         child: const Text('Sensor tidak ditemukan.'),
       );
     }
-
-    final isPh = sensor.type == SensorType.phInlet || sensor.type == SensorType.phOutlet;
 
     return Container(
       constraints: BoxConstraints(
@@ -128,46 +125,42 @@ class SensorDetailBottomSheet extends StatelessWidget {
                           'Nilai Pembacaan Saat Ini',
                           style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                         ),
-                        const SizedBox(height: 4),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              sensor.status == SensorStatus.offline
-                                  ? '--'
-                                  : sensor.currentValue.toStringAsFixed(isPh ? 2 : 1),
-                              style: const TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.navyBlue,
-                                letterSpacing: -1,
-                              ),
+                            const Text(
+                              'Visualisasi Meter Sensor',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted),
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              sensor.unit,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const Spacer(),
                             Text(
                               'Update: ${DateFormatter.timeAgo(sensor.lastUpdated)}',
                               style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
                             ),
                           ],
                         ),
-                        if (isPh && sensor.status != SensorStatus.offline) ...[
-                          const SizedBox(height: 10),
-                          SensorPhGauge(
-                            currentPh: sensor.currentValue,
-                            minNormal: sensor.minThreshold,
-                            maxNormal: sensor.maxThreshold,
+                        const SizedBox(height: 8),
+                        Center(
+                          child: SensorRadialArcGauge.fromSensor(
+                            sensor: sensor,
+                            width: 230,
+                            height: 140,
                           ),
-                        ],
+                        ),
+                        const SizedBox(height: 6),
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.borderLight),
+                            ),
+                            child: Text(
+                              'Rentang Normal: ${sensor.minThreshold.toStringAsFixed(0)}–${sensor.maxThreshold.toStringAsFixed(0)} ${sensor.unit}',
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
