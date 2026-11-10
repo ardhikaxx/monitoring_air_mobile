@@ -4,7 +4,6 @@ import '../core/constants/app_colors.dart';
 import '../core/utils/date_formatter.dart';
 import '../providers/sensor_simulation_provider.dart';
 import '../widgets/app_bar_header.dart';
-import '../widgets/device_status_card.dart';
 import '../widgets/monitoring_chart_card.dart';
 import '../widgets/statistics_card.dart';
 import '../widgets/water_quality_comparison_card.dart';
@@ -45,14 +44,9 @@ class DashboardScreen extends StatelessWidget {
               // 1. Sleek Header Title & Auto-Sync Status
               _buildHeaderTitle(provider),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
 
-              // 2. Device Connection Status Card (ESP32)
-              DeviceStatusCard(device: provider.device),
-
-              const SizedBox(height: 12),
-
-              // 3. Statistical Summary Bar
+              // 2. Statistical Summary Bar
               StatisticsCard(
                 totalSensors: provider.totalSensorsCount,
                 normalCount: provider.normalSensorsCount,
