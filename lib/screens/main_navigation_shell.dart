@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../widgets/floating_pill_nav_bar.dart';
 import 'dashboard_screen.dart';
 import 'inlet_monitoring_screen.dart';

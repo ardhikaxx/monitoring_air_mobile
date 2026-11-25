@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import '../data/mock_data.dart';
 import '../models/activity_model.dart';
 import '../models/device_model.dart';
