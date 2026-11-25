@@ -6,7 +6,6 @@ import '../providers/sensor_simulation_provider.dart';
 import '../widgets/app_bar_header.dart';
 import '../widgets/monitoring_chart_card.dart';
 import '../widgets/statistics_card.dart';
-import '../widgets/water_quality_comparison_card.dart';
 
 class DashboardScreen extends StatelessWidget {
   final ValueChanged<int>? onNavigateToTab;
@@ -57,12 +56,7 @@ class DashboardScreen extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // 4. Water Quality Comparison Card (Inlet vs Outlet)
-              WaterQualityComparisonCard(comparison: provider.waterQualityComparison),
-
-              const SizedBox(height: 14),
-
-              // 5. Quick Navigation to Dedicated Inlet & Outlet Screens
+              // 3. Quick Navigation to Dedicated Inlet & Outlet Screens
               Row(
                 children: [
                   Expanded(

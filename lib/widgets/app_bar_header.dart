@@ -1,8 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
-import '../models/device_model.dart';
-import '../providers/sensor_simulation_provider.dart';
 import 'settings_bottom_sheet.dart';
 
 class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -20,16 +17,6 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<SensorSimulationProvider>();
-    final isOnline = provider.device.status == DeviceConnectionStatus.online;
-    final isUnstable = provider.device.status == DeviceConnectionStatus.unstable;
-
-    Color statusColor = isOnline
-        ? AppColors.statusNormal
-        : isUnstable
-            ? AppColors.statusWarning
-            : AppColors.statusCritical;
-
     return AppBar(
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -65,51 +52,14 @@ class AppBarHeader extends StatelessWidget implements PreferredSizeWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.navyBlue,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Connection Status Pill
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 0.8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      provider.device.status.label.toUpperCase(),
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.navyBlue,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
           ),
           const SizedBox(height: 1),
           Text(
